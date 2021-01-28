@@ -2,18 +2,18 @@ from sanic import Sanic
 
 from configs.config import ApplicationConfig
 from context import Context
-# from hooks import init_db_sqlite
+from hooks import init_db
 from transport.sanic.routes import get_routes
 
 
 def configure_app(config: ApplicationConfig, context: Context):
     """
     Экземпляр класса Sanic с настройками
-    :param config: класс ApplicationConfig, содержащий настройки приложения
-    :param context: вспомогательный класс Context для блокировки переменной
+    :param config: класс ApplicationConfig, содержащий настройки приложения.
+    :param context: класс, содержащий подключение к БД.
     :return: объект Sanic
     """
-    # init_db_sqlite(config, context)
+    init_db(config, context)
 
     app = Sanic(__name__)
 

@@ -49,7 +49,9 @@ class SanicEndpoint:
     async def make_response_json(
             body: dict = None, status: int = 200, message: str = None, error_code: int = None
     ) -> BaseHTTPResponse:
-
+        """
+        Возвращает ответ в формате json
+        """
         if body is None:
             body = {
                 'message': message or HTTPStatus(status).phrase,
@@ -60,12 +62,18 @@ class SanicEndpoint:
 
     @staticmethod
     def import_body_json(request: Request) -> dict:
+        """
+        Преобразует json данные из тела запроса в список
+        """
         if 'application/json' in request.content_type and request.json is not None:
             return dict(request.json)
         return {}
 
     @staticmethod
     def import_body_headers(request: Request) -> dict:
+        """
+        Преобразует заголовки запроса в список
+        """
         return {
             header: value
             for header, value in request.headers.items()
@@ -81,6 +89,13 @@ class SanicEndpoint:
     #         raise SanicAuthException(str(e))
 
     async def handler(self, request: Request, *args, **kwargs) -> BaseHTTPResponse:
+        """
+        Функция, формирует тело запроса содержащего:
+        - содержимое запроса в формате json;
+        - заголовки;
+        - данные авторизации.
+        Данные передаются функции обработчика типа HTTP запроса.
+        """
         body = {}
 
         # if self.auth_required:
@@ -95,6 +110,10 @@ class SanicEndpoint:
         return await self._method(request, body, *args, **kwargs)
 
     async def _method(self, request: Request, body: dict, *args, **kwargs) -> BaseHTTPResponse:
+        """
+        Вспомогательная функция.
+        Обработка типа HTTP запроса с вызовом функции обработки самого запроса.
+        """
         method = request.method.lower()
         func_name = f'method_{method}'
 
@@ -104,6 +123,9 @@ class SanicEndpoint:
         return await self.method_not_impl(method=method)
 
     async def method_not_impl(self, method: str) -> BaseHTTPResponse:
+        """
+        Функция сигнализирует, что передаваемый метод не реализован
+        """
         return await self.make_response_json(status=500, message=f'Method {method.upper()} not implemented')
 
     async def method_get(self, request: Request, body: dict, *args, **kwargs) -> BaseHTTPResponse:

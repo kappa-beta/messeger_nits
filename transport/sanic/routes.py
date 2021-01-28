@@ -6,6 +6,9 @@ from transport.sanic import endpoints
 
 
 def get_routes(config: ApplicationConfig, context: Context) -> Tuple:
+    """
+    Описание всех маршрутов приложения
+    """
     return (
         endpoints.HealthEndpoint(
             config=config, context=context, uri='/', methods=('GET', 'POST'),

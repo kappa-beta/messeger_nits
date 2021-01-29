@@ -3,8 +3,7 @@ import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, TIMESTAMP
 
-
-Base = declarative_base()
+Base = declarative_base()  # базовый класс таблицы в базе данных
 
 
 class BaseModel(Base):

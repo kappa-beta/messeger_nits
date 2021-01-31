@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session, Query
 
 
 # from db.exceptions import DBIntegrityException, DBDataException
-# from db.models import BaseModel, DBEmployee
+from db.models import BaseModel, DBUser, DBMessage
 
 
 class DBSession:

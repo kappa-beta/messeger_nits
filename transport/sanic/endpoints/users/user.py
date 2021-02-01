@@ -36,11 +36,14 @@ class UserEndpoint(BaseEndpoint):
         return await self.make_response_json(status=200, body=response_model.dump())
 
     async def method_get(
-            self, request: Request, body: dict, session: DBSession, user_id: int, *args, **kwargs
+            self, request: Request, body: dict, session: DBSession, user_id: int, token: dict, *args, **kwargs
     ) -> BaseHTTPResponse:
 
+        if token.get('user_id') != user_id:
+            return await self.make_response_json(status=403)
+
         try:
-            user = user_queries.get_user(session)
+            user = user_queries.get_user(session, user_id=user_id)
         except DBUserNotExistsException:
             raise SanicUserNotFound('User not found')
 

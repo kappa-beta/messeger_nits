@@ -3,9 +3,11 @@ from sanic.response import BaseHTTPResponse
 
 from api.request import RequestPatchUserDto
 from api.response import ResponseUserDto
+
 from db.database import DBSession
 from db.exceptions import DBUserNotExistsException, DBDataException, DBIntegrityException
 from db.queries import user as user_queries
+
 from transport.sanic.endpoints import BaseEndpoint
 from transport.sanic.exceptions import SanicUserNotFound, SanicDBException
 

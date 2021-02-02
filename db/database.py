@@ -4,7 +4,6 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy.orm import sessionmaker, Session, Query
 
-
 from db.exceptions import DBIntegrityException, DBDataException
 from db.models import BaseModel, DBUser, DBMessage
 
@@ -41,6 +40,12 @@ class DBSession:
         except DataError as e:
             raise DBDataException(e)
 
+    def get_user_id_by_login(self, login: str) -> DBUser:
+        """
+        Выбор id пользователя по его логину.
+        """
+        return self.query(DBUser.id).filter(DBUser.login == login).first()
+
     def get_user_by_login(self, login: str) -> DBUser:
         return self.users().filter(DBUser.login == login).first()
 
@@ -51,6 +56,9 @@ class DBSession:
         qs = self.users()
         print(qs)
         return qs.all()
+
+    def get_messages_all(self, user_id: int) -> List[DBMessage]:
+        return self.query(DBMessage).filter(DBUser.id == user_id).all()
 
     def commit_session(self, need_close: bool = False):
         try:

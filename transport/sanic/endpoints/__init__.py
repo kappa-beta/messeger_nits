@@ -5,3 +5,4 @@ from .users.user import UserEndpoint
 from .users.get_all import AllUserEndpoint
 from .health import HealthEndpoint
 from .messages.message import MessageEndpoint
+from .messages.single_message import SingleMessageEndpoint

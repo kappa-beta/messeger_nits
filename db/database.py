@@ -26,6 +26,12 @@ class DBSession:
     def users(self) -> Query:
         return self.query(DBUser)
 
+    def messages(self) -> Query:
+        """
+        Выбор всех не удаленных сообщений
+        """
+        return self.query(DBMessage).filter(DBMessage.is_delete == 0)
+
     def close_session(self):
         """
         Закрытие сессии
@@ -58,7 +64,10 @@ class DBSession:
         return qs.all()
 
     def get_messages_all(self, user_id: int) -> List[DBMessage]:
-        return self.query(DBMessage).filter(DBUser.id == user_id).all()
+        return self.messages().filter(DBUser.id == user_id).all()
+
+    def get_message_single(self, message_id: int) -> DBMessage:
+        return self.messages().filter(DBMessage.id == message_id).first()
 
     def commit_session(self, need_close: bool = False):
         try:

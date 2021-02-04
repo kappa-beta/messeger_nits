@@ -13,16 +13,19 @@ def get_routes(config: ApplicationConfig, context: Context) -> Tuple:
         endpoints.HealthEndpoint(
             config=config, context=context, uri='/', methods=('GET', 'POST'),
         ),
-        # endpoints.CreateEmployeeEndpoint(
-        #     config, context, uri='/employee', methods=['POST'],
-        # ),
-        # endpoints.AuthEmployeeEndpoint(
-        #     config, context, uri='/employee/auth', methods=['POST'],
-        # ),
-        # endpoints.EmployeeEndpoint(
-        #     config, context, uri='/employee/<eid:int>', methods=['PATCH', 'DELETE'], auth_required=True,
-        # ),
-        # endpoints.AllEmployeeEndpoint(
-        #     config, context, uri='/employee/all', methods=['GET'], auth_required=True,
-        # )
+        endpoints.CreateUserEndpoint(
+            config, context, uri='/user', methods=['POST'],
+        ),
+        endpoints.AuthUserEndpoint(
+            config, context, uri='/auth', methods=['POST'],
+        ),
+        endpoints.UserEndpoint(
+            config, context, uri='/user/<user_id:int>', methods=['GET', 'PATCH'], auth_required=True,
+        ),
+        endpoints.MessageEndpoint(
+            config, context, uri='/msg', methods=['GET', 'POST'], auth_required=True,
+        ),
+        endpoints.SingleMessageEndpoint(
+            config, context, uri='/msg/<message_id:int>', methods=['GET', 'PATCH', 'DELETE'], auth_required=True,
+        ),
     )

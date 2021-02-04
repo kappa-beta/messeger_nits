@@ -1,10 +1,11 @@
 from typing import List
 
+from sqlalchemy import or_
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy.orm import sessionmaker, Session, Query
 
-from db.exceptions import DBIntegrityException, DBDataException
+from db.exceptions import DBIntegrityException, DBDataException, DBUserNotExistsException
 from db.models import BaseModel, DBUser, DBMessage
 
 
@@ -46,11 +47,19 @@ class DBSession:
         except DataError as e:
             raise DBDataException(e)
 
+    # def get_user_id_by_login(self, login: str) -> DBUser:
+    #     """
+    #     Выбор id пользователя по его логину.
+    #     """
+    #     return self.query(DBUser.id).filter(DBUser.login == login).first()
+
     def get_user_id_by_login(self, login: str) -> DBUser:
         """
         Выбор id пользователя по его логину.
         """
-        return self.query(DBUser.id).filter(DBUser.login == login).first()
+
+        return self.users().filter(DBUser.login == login).first().id
+        # return self.users().filter(DBUser.login == login).first()
 
     def get_user_by_login(self, login: str) -> DBUser:
         return self.users().filter(DBUser.login == login).first()
@@ -64,7 +73,7 @@ class DBSession:
         return qs.all()
 
     def get_messages_all(self, user_id: int) -> List[DBMessage]:
-        return self.messages().filter(DBUser.id == user_id).all()
+        return self.messages().filter(or_(DBMessage.sender_id == user_id, DBMessage.recipient_id == user_id)).all()
 
     def get_message_single(self, message_id: int) -> DBMessage:
         return self.messages().filter(DBMessage.id == message_id).first()

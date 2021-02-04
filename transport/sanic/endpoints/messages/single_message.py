@@ -1,15 +1,15 @@
 from sanic.request import Request
 from sanic.response import BaseHTTPResponse
 
-from api.request import RequestCreateMessageDto, RequestPatchMessageDto
+from api.request import RequestPatchMessageDto
 from api.response import ResponseMessageDto
 
 from transport.sanic.endpoints import BaseEndpoint
-from transport.sanic.exceptions import SanicDBException
+from transport.sanic.exceptions import SanicDBException, SanicMessageNotFound
 
 from db.database import DBSession
 from db.queries import message as message_queries
-from db.exceptions import DBDataException, DBIntegrityException
+from db.exceptions import DBDataException, DBIntegrityException, DBMessageNotExistsException
 
 
 class SingleMessageEndpoint(BaseEndpoint):
@@ -22,10 +22,14 @@ class SingleMessageEndpoint(BaseEndpoint):
         Просмотр сообщения по его id
         """
 
-        # if token.get('user_id') != user_id:
-        #     return await self.make_response_json(status=403)
+        if token.get('user_id') != message_queries.check_user_by_message_id(session, message_id=message_id).sender_id:
+            return await self.make_response_json(status=403)
 
-        db_message = message_queries.get_message(session, message_id=message_id)
+        # db_message = message_queries.get_message(session, message_id=message_id)
+        try:
+            db_message = message_queries.get_message(session, message_id=message_id)
+        except DBMessageNotExistsException:
+            raise SanicMessageNotFound('Message not found')
         response_model = ResponseMessageDto(db_message)
 
         return await self.make_response_json(body=response_model.dump(), status=201)
@@ -38,9 +42,21 @@ class SingleMessageEndpoint(BaseEndpoint):
         Редактирование сообщения по его id
         """
 
+        if token.get('user_id') != message_queries.check_user_by_message_id(session, message_id=message_id).sender_id:
+            return await self.make_response_json(status=403)
+
         request_model = RequestPatchMessageDto(body)
-        db_message = message_queries.patch_message(session, request_model, message_id=message_id)
-        session.commit_session()
+        # db_message = message_queries.patch_message(session, request_model, message_id=message_id)
+        try:
+            db_message = message_queries.patch_message(session, request_model, message_id=message_id)
+        except DBMessageNotExistsException:
+            raise SanicMessageNotFound('Message not found')
+
+        try:
+            session.commit_session()
+        except (DBDataException, DBIntegrityException) as e:
+            raise SanicDBException(str(e))
+
         response_model = ResponseMessageDto(db_message)
 
         return await self.make_response_json(body=response_model.dump(), status=201)
@@ -53,8 +69,16 @@ class SingleMessageEndpoint(BaseEndpoint):
         Удаление сообщения по его id
         """
 
-        db_message = message_queries.delete_message(session, message_id=message_id)
-        session.commit_session()
-        response_model = ResponseMessageDto(db_message)
+        try:
+            message_queries.delete_message(session, message_id=message_id)
+        except DBMessageNotExistsException:
+            raise SanicMessageNotFound('Message not found')
 
-        return await self.make_response_json(body=response_model.dump(), status=201)
+        try:
+            session.commit_session()
+        except (DBDataException, DBIntegrityException) as e:
+            raise SanicDBException(str(e))
+
+        # response_model = ResponseMessageDto(db_message)
+
+        return await self.make_response_json(body={}, status=201)

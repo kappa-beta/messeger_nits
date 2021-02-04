@@ -5,11 +5,11 @@ from api.request import RequestCreateMessageDto
 from api.response import ResponseMessageDto
 
 from transport.sanic.endpoints import BaseEndpoint
-from transport.sanic.exceptions import SanicDBException
+from transport.sanic.exceptions import SanicDBException, SanicUserNotFound
 
 from db.database import DBSession
 from db.queries import message as message_queries
-from db.exceptions import DBDataException, DBIntegrityException
+from db.exceptions import DBDataException, DBIntegrityException, DBUserNotExistsException
 
 
 class MessageEndpoint(BaseEndpoint):
@@ -20,9 +20,14 @@ class MessageEndpoint(BaseEndpoint):
         """
         Создание сообщения
         """
+
         user_id = token.get('user_id')
         request_model = RequestCreateMessageDto(body)
-        db_message = message_queries.create_message(session, request_model, user_id=user_id)
+
+        try:
+            db_message = message_queries.create_message(session, request_model, user_id=user_id)
+        except DBUserNotExistsException:
+            raise SanicUserNotFound('User not found')
 
         try:
             session.commit_session()
@@ -39,6 +44,7 @@ class MessageEndpoint(BaseEndpoint):
         """
         Просмотр всех сообщений
         """
+
         user_id = token.get('user_id')
         db_messages = message_queries.get_messages(session, user_id=user_id)
         response_model = ResponseMessageDto(db_messages, many=True)

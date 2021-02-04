@@ -1,13 +1,18 @@
 from typing import List
 
 from api.request import RequestCreateMessageDto, RequestPatchMessageDto
+
+from db.exceptions import DBUserNotExistsException, DBMessageNotExistsException
+
 from db.database import DBSession
-from db.exceptions import DBUserNotExistsException
 from db.models import DBMessage
 
 
 def create_message(session: DBSession, message: RequestCreateMessageDto, user_id: int) -> DBMessage:
-    recipient_id = session.get_user_id_by_login(message.recipient)[0]
+    try:
+        recipient_id = session.get_user_id_by_login(message.recipient)
+    except Exception:
+        raise DBUserNotExistsException
 
     new_message = DBMessage(
         message=message.message,
@@ -25,23 +30,35 @@ def get_messages(session: DBSession, user_id: int) -> List['DBMessage']:
 
 
 def get_message(session: DBSession, message_id: int):
-    return session.get_message_single(message_id=message_id)
+    try:
+        db_message = session.get_message_single(message_id=message_id)
+    except Exception:
+        raise DBMessageNotExistsException
+    return db_message
 
 
 def patch_message(session: DBSession, message: RequestPatchMessageDto, message_id: int):
-
-    db_message = session.get_message_single(message_id)
-
-    for attr in message.fields:
-        if hasattr(message, attr):
-            value = getattr(message, attr)
-            setattr(db_message, attr, value)
-
+    try:
+        db_message = session.get_message_single(message_id=message_id)
+        for attr in message.fields:
+            if hasattr(message, attr):
+                value = getattr(message, attr)
+                setattr(db_message, attr, value)
+    except Exception:
+        raise DBMessageNotExistsException
     return db_message
 
 
 def delete_message(session: DBSession, message_id: int) -> DBMessage:
-    db_message = session.get_message_single(message_id=message_id)
-    db_message.is_delete = True
+    try:
+        db_message = session.get_message_single(message_id=message_id)
+        db_message.is_delete = True
+    except Exception:
+        raise DBMessageNotExistsException
 
+    return db_message
+
+
+def check_user_by_message_id(session: DBSession, message_id: int) -> DBMessage:
+    db_message = session.get_message_single(message_id=message_id)
     return db_message

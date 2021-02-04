@@ -47,19 +47,12 @@ class DBSession:
         except DataError as e:
             raise DBDataException(e)
 
-    # def get_user_id_by_login(self, login: str) -> DBUser:
-    #     """
-    #     Выбор id пользователя по его логину.
-    #     """
-    #     return self.query(DBUser.id).filter(DBUser.login == login).first()
-
     def get_user_id_by_login(self, login: str) -> DBUser:
         """
         Выбор id пользователя по его логину.
         """
 
         return self.users().filter(DBUser.login == login).first().id
-        # return self.users().filter(DBUser.login == login).first()
 
     def get_user_by_login(self, login: str) -> DBUser:
         return self.users().filter(DBUser.login == login).first()

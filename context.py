@@ -23,7 +23,6 @@ class Context:
         Создает атрибуты, либо выдает ошибку при заблокированной переменной
         :param key: имя атрибута
         :param value: значение атрибута
-        :return:
         """
         if self.is_locked:
             raise ContextLockedException

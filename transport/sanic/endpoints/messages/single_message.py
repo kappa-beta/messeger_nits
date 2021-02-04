@@ -25,7 +25,6 @@ class SingleMessageEndpoint(BaseEndpoint):
         if token.get('user_id') != message_queries.check_user_by_message_id(session, message_id=message_id).sender_id:
             return await self.make_response_json(status=403)
 
-        # db_message = message_queries.get_message(session, message_id=message_id)
         try:
             db_message = message_queries.get_message(session, message_id=message_id)
         except DBMessageNotExistsException:
@@ -46,7 +45,7 @@ class SingleMessageEndpoint(BaseEndpoint):
             return await self.make_response_json(status=403)
 
         request_model = RequestPatchMessageDto(body)
-        # db_message = message_queries.patch_message(session, request_model, message_id=message_id)
+
         try:
             db_message = message_queries.patch_message(session, request_model, message_id=message_id)
         except DBMessageNotExistsException:
@@ -78,7 +77,5 @@ class SingleMessageEndpoint(BaseEndpoint):
             session.commit_session()
         except (DBDataException, DBIntegrityException) as e:
             raise SanicDBException(str(e))
-
-        # response_model = ResponseMessageDto(db_message)
 
         return await self.make_response_json(body={}, status=201)
